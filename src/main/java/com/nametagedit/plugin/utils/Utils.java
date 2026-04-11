@@ -1,7 +1,6 @@
 package com.nametagedit.plugin.utils;
 
 import com.nametagedit.plugin.packets.VersionChecker;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -11,6 +10,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -22,7 +22,7 @@ public class Utils {
     private static final Pattern hexPattern = Pattern.compile("&#([A-Fa-f0-9]{6})");
 
     public static String format(String[] text, int to, int from) {
-        return StringUtils.join(text, ' ', to, from).replace("'", "");
+        return String.join(" ", Arrays.copyOfRange(text, to, from)).replace("'", "");
     }
 
     public static String deformat(String input) {

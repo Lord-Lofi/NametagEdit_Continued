@@ -1,16 +1,18 @@
 package com.nametagedit.plugin.utils;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -23,7 +25,6 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
 
     private static final double PROFILES_PER_REQUEST = 100;
     private static final String PROFILE_URL = "https://api.mojang.com/profiles/minecraft";
-    private final JSONParser jsonParser = new JSONParser();
     private final List<String> names;
     private final boolean rateLimiting;
 
@@ -60,7 +61,7 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
 
     private static void writeBody(HttpURLConnection connection, String body) throws Exception {
         try (OutputStream stream = connection.getOutputStream()) {
-            stream.write(body.getBytes());
+            stream.write(body.getBytes(StandardCharsets.UTF_8));
             stream.flush();
         }
     }
@@ -85,22 +86,28 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
         return new UUIDFetcher(Collections.singletonList(name)).call().get(name);
     }
 
+    private static String toJsonArray(List<String> names) {
+        JsonArray array = new JsonArray();
+        for (String name : names) array.add(name);
+        return array.toString();
+    }
+
     @Override
     public Map<String, UUID> call() throws Exception {
         Map<String, UUID> uuidMap = new HashMap<>();
         int requests = (int) Math.ceil(names.size() / PROFILES_PER_REQUEST);
         for (int i = 0; i < requests; i++) {
             HttpURLConnection connection = createConnection();
-            String body = JSONArray.toJSONString(names.subList(i * 100, Math.min((i + 1) * 100, names.size())));
+            String body = toJsonArray(names.subList(i * 100, Math.min((i + 1) * 100, names.size())));
             writeBody(connection, body);
-            JSONArray array = (JSONArray) jsonParser.parse(new InputStreamReader(connection.getInputStream()));
+            JsonArray array = JsonParser.parseReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))
+                    .getAsJsonArray();
 
-            for (Object profile : array) {
-                JSONObject jsonProfile = (JSONObject) profile;
-                String id = (String) jsonProfile.get("id");
-                String name = (String) jsonProfile.get("name");
-                UUID uuid = UUIDFetcher.getUUID(id);
-                uuidMap.put(name, uuid);
+            for (JsonElement element : array) {
+                JsonObject profile = element.getAsJsonObject();
+                String id = profile.get("id").getAsString();
+                String name = profile.get("name").getAsString();
+                uuidMap.put(name, getUUID(id));
             }
 
             if (rateLimiting && i != requests - 1) {

@@ -65,8 +65,26 @@ public class VersionChecker {
             bukkitVersion = BukkitVersion.v1_20_R2;
         else if (version.contains("(MC: 1.20.3)") || version.contains("(MC: 1.20.4)"))
             bukkitVersion = BukkitVersion.v1_20_R3;
-        else
-            bukkitVersion = null;
+        else if (version.contains("(MC: 1.20.5)") || version.contains("(MC: 1.20.6)"))
+            bukkitVersion = BukkitVersion.v1_20_R4;
+        else if (version.contains("(MC: 1.21)") || version.contains("(MC: 1.21.1)"))
+            bukkitVersion = BukkitVersion.v1_21_R1;
+        else if (version.contains("(MC: 1.21.2)") || version.contains("(MC: 1.21.3)"))
+            bukkitVersion = BukkitVersion.v1_21_R2;
+        else if (version.contains("(MC: 1.21.4)"))
+            bukkitVersion = BukkitVersion.v1_21_R3;
+        else if (version.contains("(MC: 1.21.5)") || version.contains("(MC: 1.21.6)"))
+            bukkitVersion = BukkitVersion.v1_21_R4;
+        else if (version.contains("(MC: 1.21.7)") || version.contains("(MC: 1.21.8)") || version.contains("(MC: 1.21.9)"))
+            bukkitVersion = BukkitVersion.v1_21_R5;
+        else if (version.contains("(MC: 1.21.10)") || version.contains("(MC: 1.21.11)"))
+            bukkitVersion = BukkitVersion.v1_21_R6;
+        else {
+            // Unknown/future version: fall back to the latest known entry rather than returning null,
+            // which would cause a NullPointerException in NametagEdit.onEnable(). NMS field names for
+            // PacketPlayOutScoreboardTeam have been stable since 1.17, so this is safe for minor bumps.
+            bukkitVersion = BukkitVersion.v1_21_R6;
+        }
     }
 
     public static BukkitVersion getBukkitVersion() {
@@ -80,7 +98,18 @@ public class VersionChecker {
     }
 
     public enum BukkitVersion {
-        v1_8_R1, v1_8_R2, v1_8_R3, v1_9_R1, v1_9_R2, v1_10_R1, v1_11_R1, v1_12_R1, v1_13_R1, v1_13_R2, v1_14_R1, v1_14_R2, v1_15_R1, v1_16_R1, v1_16_R2, v1_16_R3, v1_17_R1, v1_18_R1, v1_19_R1, v1_19_R2, v1_19_R3, v1_20_R1, v1_20_R2, v1_20_R3
+        v1_8_R1, v1_8_R2, v1_8_R3,
+        v1_9_R1, v1_9_R2,
+        v1_10_R1, v1_11_R1, v1_12_R1,
+        v1_13_R1, v1_13_R2,
+        v1_14_R1, v1_14_R2,
+        v1_15_R1,
+        v1_16_R1, v1_16_R2, v1_16_R3,
+        v1_17_R1,
+        v1_18_R1,
+        v1_19_R1, v1_19_R2, v1_19_R3,
+        v1_20_R1, v1_20_R2, v1_20_R3, v1_20_R4,
+        v1_21_R1, v1_21_R2, v1_21_R3, v1_21_R4, v1_21_R5, v1_21_R6
     }
 
 }

@@ -82,12 +82,24 @@ class PacketAccessor {
                 packetParamsClass = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutScoreboardTeam$b");
                 Class<?> typeNMSPlayer = Class.forName("net.minecraft.server.level.EntityPlayer");
                 Class<?> typePlayerConnection = Class.forName("net.minecraft.server.network.PlayerConnection");
-                if (MINOR_VERSION >= 20) {
-                    // 1.20
-                    playerConnection = typeNMSPlayer.getField("c");
-                } else {
-                    // 1.17-1.19
-                    playerConnection = typeNMSPlayer.getField("b");
+                // Try the known obfuscated field names first, then fall back to a type-based scan so
+                // the plugin survives minor Spigot re-obfuscations without code changes.
+                String connectionFieldName = MINOR_VERSION >= 20 ? "c" : "b"; // "c" for 1.20+, "b" for 1.17-1.19
+                try {
+                    playerConnection = typeNMSPlayer.getField(connectionFieldName);
+                } catch (NoSuchFieldException ignored) {
+                    // Field was renamed — scan EntityPlayer for the first field whose type is assignable
+                    // from PlayerConnection (the only such field in EntityPlayer).
+                    for (Field f : typeNMSPlayer.getDeclaredFields()) {
+                        if (typePlayerConnection.isAssignableFrom(f.getType())) {
+                            f.setAccessible(true);
+                            playerConnection = f;
+                            break;
+                        }
+                    }
+                    if (playerConnection == null) {
+                        throw new NoSuchFieldException("Could not locate playerConnection field in EntityPlayer for MC 1." + MINOR_VERSION);
+                    }
                 }
                 Class<?>[] sendPacketParameters = new Class[]{Class.forName("net.minecraft.network.protocol.Packet")};
                 sendPacket = Stream.concat(
@@ -107,6 +119,14 @@ class PacketAccessor {
 
             if (CAULDRON_SERVER) {
                 currentVersion = PacketData.cauldron;
+            }
+
+            if (currentVersion == null && isParamsVersion()) {
+                // Running on an unrecognised 1.17+ version — try the latest known 1.21 field layout.
+                // The packet class structure has been stable since 1.17, so this is a reasonable fallback.
+                System.err.println("[NametagEdit] No PacketData entry for VERSION=" + VERSION
+                        + " — falling back to v1_21 field mappings. If nametags appear broken, please report this.");
+                currentVersion = PacketData.v1_21;
             }
 
             if (currentVersion != null) {

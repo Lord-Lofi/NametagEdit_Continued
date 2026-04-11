@@ -2,7 +2,6 @@ package com.nametagedit.plugin.converter;
 
 import com.nametagedit.plugin.NametagMessages;
 import com.nametagedit.plugin.utils.Utils;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -74,7 +73,8 @@ public class Converter {
     private void handleGroup(YamlConfiguration config, String line) {
         String[] lineContents = line.replace("=", "").split(" ");
         String[] permissionSplit = lineContents[0].split("\\.");
-        String group = WordUtils.capitalizeFully(permissionSplit[permissionSplit.length - 1]);
+        String raw = permissionSplit[permissionSplit.length - 1].toLowerCase();
+        String group = raw.isEmpty() ? raw : Character.toUpperCase(raw.charAt(0)) + raw.substring(1);
         String permission = lineContents[0];
         String type = lineContents[1];
         String value = line.substring(line.indexOf("\"") + 1);

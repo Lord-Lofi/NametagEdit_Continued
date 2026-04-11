@@ -1,60 +1,94 @@
-# NametagEdit
+# NametagEdit (1.21.x Fork)
 
-[![Dev Builds](https://img.shields.io/badge/Jenkins-Development%20Builds-lightgrey.svg)](https://ci.nametagedit.com/job/NametagEdit)
-[![Support](https://img.shields.io/badge/Minecraft-1.7--1.19-green.svg)](documentation/Support)
-[![Spigot](https://img.shields.io/badge/Spigot-Project%20Page-yellow.svg)](https://www.spigotmc.org/resources/nametagedit.3836/)
-[![JDK](https://img.shields.io/badge/JDK-1.8-blue.svg)](https://jdk.java.net/java-se-ri/8-MR3)
+[![Spigot](https://img.shields.io/badge/Spigot-1.21.x-yellow.svg)](https://www.spigotmc.org/resources/nametagedit.3836/)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.7--1.21.11-green.svg)](documentation/Support)
+[![JDK](https://img.shields.io/badge/JDK-17%2B-blue.svg)](https://adoptium.net/)
 [![NametagEditAPI](https://img.shields.io/badge/NTE-Developer%20API-ff69b4.svg)](documentation/Developers.creole)
 
-This plugin allows users to add up to 16 characters before and after their name. Individual tags can be created for players, or a group can be created that can be joined via permissions.
+> **Fork of [sgtcaze/NametagEdit](https://github.com/sgtcaze/NametagEdit)** updated to support Minecraft 1.21.x (including 1.21.11) on Spigot.
 
-* Minecraft `1.7.x to 1.12.x` has a max 16-character limit.
-* Minecraft `1.13.x to 1.20.x` has a max 256-character limit.
-* Minecraft `1.16.x to 1.20.x` has `hex color` support.
+This plugin allows users to add prefixes and suffixes to player nametags. Individual tags can be created for players, or a group tag can be assigned via permissions.
 
-NametagEdit has support for EssentialsGroupManager, PermissionsEx, zPermissions, LuckPerms and LibsDisguises. If a user changes groups or permissions, their tag is automatically updated.
+* Minecraft `1.7.x – 1.12.x` — max **16-character** prefix/suffix
+* Minecraft `1.13.x – 1.21.x` — max **256-character** prefix/suffix
+* Minecraft `1.16.x – 1.21.x` — **hex color** (`&#RRGGBB`) support
 
-* [Official Project Page](https://www.spigotmc.org/resources/nametagedit.3836/)
-* [Development Builds](https://ci.nametagedit.com/job/NametagEdit)
+Supports EssentialsGroupManager, PermissionsEx, zPermissions, **LuckPerms**, and LibsDisguises. Tags update automatically when a player's group or permissions change.
 
-# Quick Links
+---
+
+## Changes in this fork (v4.6.0)
+
+| Area | Change |
+|---|---|
+| **Minecraft support** | Extended to 1.20.5/1.20.6 and all 1.21.x versions up to **1.21.11** |
+| **VersionChecker** | No longer crashes with NPE on unknown future versions — falls back gracefully |
+| **NMS reflection** | `playerConnection` field resolved by type-scan if Spigot renames it in a future build |
+| **bStats** | Upgraded from embedded v1 class to **bStats v3** (`org.bstats:bstats-bukkit:3.0.2`) |
+| **Dependencies** | Removed `commons-lang` and `json-simple` — replaced with Java built-ins and Gson |
+| **Build** | Java 17+, Spigot API `1.21.11-R0.2-SNAPSHOT`, shade plugin 3.5.1 |
+
+---
+
+## Quick Links
 * [API & Developers](documentation/Developers.creole)
 * [Permissions](documentation/Permissions.creole)
 * [Commands](documentation/Commands.creole)
 * [Configuration](documentation/Configuration.creole)
 * [Common Issues](documentation/Support.creole)
 
-# Features
-✔ Converters to and from MySQL and FlatFile
+---
 
-✔ Efficient Flatfile support and MySQL connection pooling
+## Features
+✔ Flatfile and MySQL storage with connection pooling (HikariCP)
 
-✔ PermissionsEX, zPermissions, GroupManager, LuckPerms (https://www.spigotmc.org/resources/luckperms-an-advanced-permissions-plugin.28140/) support
+✔ PermissionsEX, zPermissions, GroupManager, **LuckPerms** support
 
-✔ Sortable Group/Player Tags in tab
+✔ Sortable group/player tags in the tab list
 
-✔ [MVdW Placeholder API](https://www.spigotmc.org/resources/mvdwplaceholderapi.11182/) Support
+✔ [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) support
 
-✔ [Clip Placeholder API](https://www.spigotmc.org/resources/placeholderapi.6245/) Support 
+✔ [Guilds](https://www.spigotmc.org/resources/guilds.66176/) support
 
-✔ [Guilds](https://www.spigotmc.org/resources/guilds.66176/) Support 
+✔ Hex color support on 1.16+
 
-# Frequently Asked Questions
-#### Q: Will this allow me to change my skin and name?
-**A:** No. This plugin creates fake scoreboard teams with packets.
+---
 
-#### Q: My client crashes with the reason "Cannot remove from ID#". Why is this?
-**A:** Due to how scoreboards were implemented in Minecraft, a player cannot belong to two teams. Any two plugins that use packets or the Bukkit API which alter team prefixes/suffixes will have conflicts. There is currently no way around this.
+## Building
 
-#### Q: My nametag is cut short, even with LongTags enabled!
-**A:** LongTags is only able to disable a longer nametag in the tablist. The name above your head has a different limit (16 characters for prefix and suffix.) We are unable to change this, as this limit is imposed by Mojang.
+Requires Java 17+ and Maven.
+
+```bash
+mvn clean package
+```
+
+The plugin jar is output to `target/NametagEdit.jar`. Drop it into your server's `plugins/` folder.
+
+> **Note:** All NMS access is via reflection — no BuildTools run is required to compile.
+
+---
+
+## Frequently Asked Questions
+
+#### Q: Will this allow me to change my skin or display name?
+**A:** No. The plugin creates fake scoreboard teams with packets to show prefix/suffix around the vanilla name.
+
+#### Q: My client crashes with "Cannot remove from ID#". Why?
+**A:** A player can only belong to one scoreboard team at a time. Any two plugins that manipulate team packets will conflict. There is no workaround.
+
+#### Q: My nametag is cut short even with LongTags enabled!
+**A:** LongTags only extends the tab-list display. The name above a player's head has a 16-character limit imposed by Mojang for prefix and suffix respectively.
 
 #### Q: Can I sort nametags in the tab list?
-**A:** Yes. Read up on how to use it [here](documentation/Configuration.creole)
+**A:** Yes — see the [Configuration](documentation/Configuration.creole) docs.
 
-# TODO
+---
 
-# Incompatible Plugins
-✖ Any plugin that creates NPCs that share the same username as players who have 'NametagEdit' nametags
+## Incompatible Plugins
+✖ Any plugin that creates NPCs sharing a username with players who have NametagEdit tags
 
-✖ Any plugin that uses Team color sidebars without specifically supporting NametagEdit
+✖ Any plugin that uses team-based color sidebars without explicit NametagEdit support
+
+---
+
+*Original plugin by [sgtcaze](https://github.com/sgtcaze). Fork maintained by [Lord-Lofi](https://github.com/Lord-Lofi).*

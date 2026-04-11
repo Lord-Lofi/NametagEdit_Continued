@@ -22,7 +22,11 @@ enum PacketData {
     v1_17("j", "b", "c", "i", "h", "g", "a", "f", "e", "d", "k"),
     v1_18("j", "b", "c", "i", "h", "g", "a", "f", "e", "d", "k"),
     v1_19("j", "b", "c", "i", "h", "g", "a", "f", "e", "d", "k"),
-    v1_20("j", "b", "c", "i", "h", "g", "a", "f", "e", "d", "k");
+    v1_20("j", "b", "c", "i", "h", "g", "a", "f", "e", "d", "k"),
+    // 1.21.x — PacketPlayOutScoreboardTeam field layout is unchanged from 1.17–1.20.
+    // Outer class (PacketPlayOutScoreboardTeam): j=members, i=teamName, h=paramInt, k=params
+    // Inner class ($b / Parameters): b=prefix, c=suffix, g=packOption, a=displayName, f=color, e=push, d=visibility
+    v1_21("j", "b", "c", "i", "h", "g", "a", "f", "e", "d", "k");
 
     private final String members;
     private final String prefix;
