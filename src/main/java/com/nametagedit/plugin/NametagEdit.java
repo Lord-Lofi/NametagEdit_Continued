@@ -83,8 +83,8 @@ public class NametagEdit extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        manager.reset();
-        handler.getAbstractConfig().shutdown();
+        if (manager != null) manager.reset();
+        if (handler != null && handler.getAbstractConfig() != null) handler.getAbstractConfig().shutdown();
     }
 
     void debug(String message) {

@@ -27,12 +27,18 @@ public class PacketWrapper {
         try {
             if (!PacketAccessor.isLegacyVersion()) {
                 if (!PacketAccessor.isParamsVersion()) {
+                    // pre-1.17 Spigot: versioned NMS package
                     typeEnumChatFormat = (Class<? extends Enum>) Class.forName("net.minecraft.server." + PacketAccessor.VERSION + ".EnumChatFormat");
-                } else {
-                    // 1.17+
+                } else if (!PacketAccessor.PAPER_NEW) {
+                    // Spigot 1.17+: unversioned NMS, Spigot-obfuscated name
                     typeEnumChatFormat = (Class<? extends Enum>) Class.forName("net.minecraft.EnumChatFormat");
+                } else {
+                    // Paper 1.20.5+: Mojang-mapped name
+                    typeEnumChatFormat = (Class<? extends Enum>) Class.forName("net.minecraft.ChatFormatting");
                 }
-                Class<?> typeCraftChatMessage = Class.forName("org.bukkit.craftbukkit." + PacketAccessor.VERSION + ".util.CraftChatMessage");
+                // craftPath() handles both Spigot ("org.bukkit.craftbukkit.v1_21_R1.util.CraftChatMessage")
+                // and Paper ("org.bukkit.craftbukkit.util.CraftChatMessage")
+                Class<?> typeCraftChatMessage = Class.forName(PacketAccessor.craftPath("util.CraftChatMessage"));
                 CraftChatMessage = typeCraftChatMessage.getMethod("fromString", String.class);
                 RESET_COLOR = Enum.valueOf(typeEnumChatFormat, "RESET");
             }
@@ -96,6 +102,7 @@ public class PacketWrapper {
                     PacketAccessor.PACK_OPTION.set(packet, 1);
 
                     if (PacketAccessor.VISIBILITY != null) {
+                        // pre-1.17 Spigot: String field
                         PacketAccessor.VISIBILITY.set(packet, visible ? "always" : "never");
                     }
                 } else {
@@ -103,7 +110,10 @@ public class PacketWrapper {
                     PacketAccessor.PACK_OPTION.set(packetParams, 1);
 
                     if (PacketAccessor.VISIBILITY != null) {
-                        PacketAccessor.VISIBILITY.set(packetParams, visible ? "always" : "never");
+                        // Paper uses Team.Visibility enum; Spigot 1.17+ uses String
+                        PacketAccessor.VISIBILITY.set(packetParams, visible
+                                ? (PacketAccessor.PAPER_NEW ? PacketAccessor.VISIBILITY_ENUM_ALWAYS : "always")
+                                : (PacketAccessor.PAPER_NEW ? PacketAccessor.VISIBILITY_ENUM_NEVER  : "never"));
                     }
                 }
 
@@ -134,8 +144,11 @@ public class PacketWrapper {
             if (PacketAccessor.isParamsVersion()) {
                 // 1.17+ These null values are not allowed, this initializes them.
                 PacketAccessor.MEMBERS.set(packet, new ArrayList<>());
-                PacketAccessor.PUSH.set(packetParams, "");
-                PacketAccessor.VISIBILITY.set(packetParams, "");
+                // Paper uses Team.CollisionRule / Team.Visibility enums; Spigot uses Strings
+                PacketAccessor.PUSH.set(packetParams,
+                        PacketAccessor.PAPER_NEW ? PacketAccessor.PUSH_ENUM_ALWAYS : "");
+                PacketAccessor.VISIBILITY.set(packetParams,
+                        PacketAccessor.PAPER_NEW ? PacketAccessor.VISIBILITY_ENUM_ALWAYS : "");
                 PacketAccessor.TEAM_COLOR.set(packetParams, RESET_COLOR);
             }
             if (NametagHandler.DISABLE_PUSH_ALL_TAGS && PacketAccessor.PUSH != null) {
@@ -143,7 +156,8 @@ public class PacketWrapper {
                     PacketAccessor.PUSH.set(packet, "never");
                 } else {
                     // 1.17+
-                    PacketAccessor.PUSH.set(packetParams, "never");
+                    PacketAccessor.PUSH.set(packetParams,
+                            PacketAccessor.PAPER_NEW ? PacketAccessor.PUSH_ENUM_NEVER : "never");
                 }
             }
         } catch (Exception e) {
