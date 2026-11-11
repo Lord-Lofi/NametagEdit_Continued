@@ -5,7 +5,6 @@ import com.nametagedit.plugin.api.data.INametag;
 import com.nametagedit.plugin.api.data.PlayerData;
 import com.nametagedit.plugin.api.events.NametagEvent;
 import com.nametagedit.plugin.api.events.NametagFirstLoadedEvent;
-import org.bstats.bukkit.Metrics;
 import com.nametagedit.plugin.storage.AbstractConfig;
 import com.nametagedit.plugin.storage.database.DatabaseConfig;
 import com.nametagedit.plugin.storage.flatfile.FlatFileConfig;
@@ -324,11 +323,6 @@ public class NametagHandler implements Listener {
         this.longNametagsEnabled = config.getBoolean("Tablist.LongTags");
         this.refreshTagOnWorldChange = config.getBoolean("RefreshTagOnWorldChange");
         DISABLE_PUSH_ALL_TAGS = config.getBoolean("DisablePush");
-
-        if (config.getBoolean("MetricsEnabled")) {
-            // bStats plugin ID 2539 — verify at https://bstats.org/plugin/bukkit/NametagEdit
-            new Metrics(NametagEdit.getPlugin(NametagEdit.class), 2539);
-        }
 
         clearEmptyTeamTask = createTask("ClearEmptyTeamsInterval", clearEmptyTeamTask, () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "nte teams clear"));
 

@@ -2,7 +2,6 @@ package com.nametagedit.plugin;
 
 import com.nametagedit.plugin.api.data.GroupData;
 import com.nametagedit.plugin.api.events.NametagEvent;
-import com.nametagedit.plugin.converter.Converter;
 import com.nametagedit.plugin.converter.ConverterTask;
 import com.nametagedit.plugin.utils.Utils;
 import lombok.AllArgsConstructor;
@@ -197,17 +196,15 @@ public class NametagCommand implements CommandExecutor, TabExecutor {
      */
     private void cmdConvert(CommandSender sender, String[] args) {
         if (isNotPermissed(sender, "nametagedit.convert")) return;
-        if (args.length != 4) {
+        if (args.length != 3) {
             NametagMessages.USAGE_CONVERT.send(sender);
         } else {
             boolean sourceIsFile = args[1].equalsIgnoreCase("file");
             boolean destinationIsSQL = args[2].equalsIgnoreCase("db");
-            boolean legacy = args[3].equalsIgnoreCase("true");
-            NametagMessages.CONVERSION.send(sender, "groups & players", sourceIsFile ? "file" : "mysql", destinationIsSQL ? "mysql" : "file", legacy);
+            NametagMessages.CONVERSION.send(sender, "groups & players", sourceIsFile ? "file" : "mysql", destinationIsSQL ? "mysql" : "file");
 
-            if (sourceIsFile && !destinationIsSQL && legacy) {
-                new Converter().legacyConversion(sender, handler.getPlugin());
-            } else if ((destinationIsSQL && sourceIsFile) || (!sourceIsFile && !destinationIsSQL)) {
+            // Only file -> db and db -> file are valid conversions
+            if (sourceIsFile == destinationIsSQL) {
                 new ConverterTask(!destinationIsSQL, sender, handler.getPlugin()).runTaskAsynchronously(handler.getPlugin());
             }
         }

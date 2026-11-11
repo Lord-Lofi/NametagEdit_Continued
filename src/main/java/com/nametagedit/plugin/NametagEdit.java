@@ -3,7 +3,6 @@ package com.nametagedit.plugin;
 import com.nametagedit.plugin.api.INametagApi;
 import com.nametagedit.plugin.api.NametagAPI;
 import com.nametagedit.plugin.hooks.*;
-import com.nametagedit.plugin.invisibility.InvisibilityTask;
 import com.nametagedit.plugin.packets.PacketWrapper;
 import com.nametagedit.plugin.packets.VersionChecker;
 import lombok.Getter;
@@ -50,21 +49,8 @@ public class NametagEdit extends JavaPlugin {
 
         PluginManager pluginManager = Bukkit.getPluginManager();
 
-        if (checkShouldRegister("zPermissions")) {
-            pluginManager.registerEvents(new HookZPermissions(handler), this);
-        } else if (checkShouldRegister("PermissionsEx")) {
-            pluginManager.registerEvents(new HookPermissionsEX(handler), this);
-        } else if (checkShouldRegister("GroupManager")) {
-            pluginManager.registerEvents(new HookGroupManager(handler), this);
-        } else if (checkShouldRegister("LuckPerms")) {
+        if (checkShouldRegister("LuckPerms")) {
             pluginManager.registerEvents(new HookLuckPerms(handler), this);
-        }
-
-        if (pluginManager.getPlugin("LibsDisguises") != null) {
-            pluginManager.registerEvents(new HookLibsDisguise(this), this);
-        }
-        if (pluginManager.getPlugin("Guilds") != null) {
-            pluginManager.registerEvents(new HookGuilds(handler), this);
         }
 
         getCommand("ne").setExecutor(new NametagCommand(handler));
@@ -72,9 +58,6 @@ public class NametagEdit extends JavaPlugin {
         if (api == null) {
             api = new NametagAPI(handler, manager);
         }
-
-        if (version.name().startsWith("v1_8_"))
-            new InvisibilityTask().runTaskTimerAsynchronously(this, 100L, 20L);
     }
 
     public static NametagEdit getInstance(){

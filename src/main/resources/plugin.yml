@@ -3,7 +3,7 @@ main: com.nametagedit.plugin.NametagEdit
 version: ${project.version}
 api-version: 1.21
 authors: [sgtcaze, Cory, Lorenzo0111, Aurelien30000]
-softdepend: [zPermissions, PermissionsEX, GroupManager, LuckPerms, LibsDisguises, Guilds, PlaceholderAPI]
+softdepend: [LuckPerms, PlaceholderAPI]
 commands:
   ne:
     description: NametagEdit commands
