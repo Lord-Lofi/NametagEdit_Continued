@@ -1,8 +1,6 @@
 #---------------------------------------------------------
 # NametagEdit by sgtcaze and Cory
-#---------------------------------------------------------
-# Development Builds: https://ci.nametagedit.com
-# Source Code: http://www.github.com/sgtcaze/NametagEdit
+# Paper 26.3 fork: https://github.com/Lord-Lofi/NametagEdit_Continued
 #---------------------------------------------------------
 #
 # These settings allow you to customize the behavior of the
@@ -11,13 +9,11 @@ Tablist:
   # If Enabled, NametagEdit will format the Tab menu
   Enabled: true
   # !! EXPERIMENTAL !!
-  # This feature will use the PlayerListName to set your
-  # nametag. It will allow you to bypass the 16 character limit
-  # for prefix/suffix. Be warned: This does not work on earlier versions
-  # of Minecraft. Please report issues to our GitHub, and we'll try to help.
+  # This feature uses the PlayerListName to show the full
+  # prefix + name + suffix in the tab list.
   LongTags: false
 #
-# If enabled, players with NametagEdit nametags will not be able to push each other (1.9+)
+# If enabled, players with NametagEdit nametags will not be able to push each other
 DisablePush: false
 #
 # Do you have strange, unexplained lag emanating from NametagEdit? Likely it's a few plugins
