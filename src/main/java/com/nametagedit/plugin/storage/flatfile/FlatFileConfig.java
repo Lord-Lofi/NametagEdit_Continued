@@ -118,7 +118,7 @@ public class FlatFileConfig implements AbstractConfig {
             UUIDFetcher.lookupUUID(key, plugin, new UUIDFetcher.UUIDLookup() {
                 @Override
                 public void response(UUID uuid) {
-                    if (players.contains("Players." + uuid.toString())) {
+                    if (uuid != null && players.contains("Players." + uuid.toString())) {
                         players.set("Players." + uuid, priority);
                         save(players, playersFile);
                     }

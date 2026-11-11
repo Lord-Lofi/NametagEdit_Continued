@@ -1,120 +1,70 @@
 package com.nametagedit.plugin.utils;
 
-import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.Callable;
+import java.util.UUID;
 
 /**
- * This class is responsible for retrieving UUIDs from Names
+ * Looks up a player's UUID from their name using the server's own player data.
  *
- * @author evilmidget38
+ * In order:
+ * 1. A player who is online right now.
+ * 2. The server's cache of players who have joined before (no network call).
+ * 3. The server's profile lookup, which uses the server's own (cached,
+ *    rate-limited) Mojang session service and respects offline-mode servers.
+ *
+ * The callback always runs on the main server thread; the UUID is null if
+ * the player can't be found.
  */
-public class UUIDFetcher implements Callable<Map<String, UUID>> {
+public final class UUIDFetcher {
 
-    private static final double PROFILES_PER_REQUEST = 100;
-    private static final String PROFILE_URL = "https://api.mojang.com/profiles/minecraft";
-    private final List<String> names;
-    private final boolean rateLimiting;
-
-    private UUIDFetcher(List<String> names, boolean rateLimiting) {
-        this.names = ImmutableList.copyOf(names);
-        this.rateLimiting = rateLimiting;
-    }
-
-    private UUIDFetcher(List<String> names) {
-        this(names, true);
+    private UUIDFetcher() {
     }
 
     public static void lookupUUID(final String name, final Plugin plugin, final UUIDLookup uuidLookup) {
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null) {
+            respond(plugin, uuidLookup, online.getUniqueId());
+            return;
+        }
+
+        OfflinePlayer cached = Bukkit.getOfflinePlayerIfCached(name);
+        if (cached != null) {
+            respond(plugin, uuidLookup, cached.getUniqueId());
+            return;
+        }
+
+        // Not seen on this server before: ask the server's profile service, off the main thread.
         new BukkitRunnable() {
             @Override
             public void run() {
-                UUID response = null;
+                UUID uuid = null;
                 try {
-                    response = getUUIDOf(name);
+                    PlayerProfile profile = Bukkit.createProfile(name);
+                    if (profile.complete(false)) {
+                        uuid = profile.getId();
+                    }
                 } catch (Exception e) {
-                    // Swallow
+                    plugin.getLogger().warning("Could not look up the UUID for " + name + ": " + e.getMessage());
                 }
 
-                final UUID finalResponse = response;
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        uuidLookup.response(finalResponse);
-                    }
-                }.runTask(plugin);
+                respond(plugin, uuidLookup, uuid);
             }
         }.runTaskAsynchronously(plugin);
     }
 
-    private static void writeBody(HttpURLConnection connection, String body) throws Exception {
-        try (OutputStream stream = connection.getOutputStream()) {
-            stream.write(body.getBytes(StandardCharsets.UTF_8));
-            stream.flush();
+    /** Runs the callback on the main thread, straight away if we're already on it. */
+    private static void respond(Plugin plugin, UUIDLookup uuidLookup, UUID uuid) {
+        if (Bukkit.isPrimaryThread()) {
+            uuidLookup.response(uuid);
+        } else {
+            Bukkit.getScheduler().runTask(plugin, () -> uuidLookup.response(uuid));
         }
-    }
-
-    private static HttpURLConnection createConnection() throws Exception {
-        URL url = new URL(PROFILE_URL);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setUseCaches(false);
-        connection.setDoInput(true);
-        connection.setDoOutput(true);
-        return connection;
-    }
-
-    private static UUID getUUID(String id) {
-        return UUID.fromString(id.substring(0, 8) + "-" + id.substring(8, 12) + "-" + id.substring(12, 16)
-                + "-" + id.substring(16, 20) + "-" + id.substring(20, 32));
-    }
-
-    private static UUID getUUIDOf(String name) throws Exception {
-        return new UUIDFetcher(Collections.singletonList(name)).call().get(name);
-    }
-
-    private static String toJsonArray(List<String> names) {
-        JsonArray array = new JsonArray();
-        for (String name : names) array.add(name);
-        return array.toString();
-    }
-
-    @Override
-    public Map<String, UUID> call() throws Exception {
-        Map<String, UUID> uuidMap = new HashMap<>();
-        int requests = (int) Math.ceil(names.size() / PROFILES_PER_REQUEST);
-        for (int i = 0; i < requests; i++) {
-            HttpURLConnection connection = createConnection();
-            String body = toJsonArray(names.subList(i * 100, Math.min((i + 1) * 100, names.size())));
-            writeBody(connection, body);
-            JsonArray array = JsonParser.parseReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))
-                    .getAsJsonArray();
-
-            for (JsonElement element : array) {
-                JsonObject profile = element.getAsJsonObject();
-                String id = profile.get("id").getAsString();
-                String name = profile.get("name").getAsString();
-                uuidMap.put(name, getUUID(id));
-            }
-
-            if (rateLimiting && i != requests - 1) {
-                Thread.sleep(100L);
-            }
-        }
-        return uuidMap;
     }
 
     public interface UUIDLookup {
