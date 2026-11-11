@@ -1,0 +1,38 @@
+# Keeps dependencies up to date with weekly pull requests.
+#
+# Groups keep the number of pull requests down:
+#   - security: all security fixes for an ecosystem in one pull request
+#   - minor-and-patch: routine minor and patch updates in one pull request
+# Major version updates still get their own pull request, because they can
+# need code changes.
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
