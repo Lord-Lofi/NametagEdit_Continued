@@ -1,6 +1,5 @@
 package com.nametagedit.plugin.api.data;
 
-import com.nametagedit.plugin.packets.VersionChecker;
 import com.nametagedit.plugin.utils.Utils;
 import lombok.Data;
 import lombok.Getter;
@@ -35,15 +34,7 @@ public class FakeTeam {
         while(createdTeamsNames.contains(generatedName)){
             generatedName = Utils.generateUUID() + "_" + getNameFromInput(sortPriority) + ++ID + (playerTag ? "+P" : "");
         }
-        this.name = generatedName;
-
-        switch (VersionChecker.getBukkitVersion()) {
-            case v1_8_R1: case v1_8_R2: case v1_8_R3: case v1_9_R1: case v1_9_R2:
-            case v1_10_R1: case v1_11_R1: case v1_12_R1:
-                this.name = this.name.length() > 16 ? this.name.substring(0, 16) : this.name;
-            default:
-                this.name = this.name.length() > 256 ? this.name.substring(0, 256) : this.name;
-        }
+        this.name = generatedName.length() > 256 ? generatedName.substring(0, 256) : generatedName;
 
         this.prefix = prefix;
         this.suffix = suffix;

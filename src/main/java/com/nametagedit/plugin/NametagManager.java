@@ -1,13 +1,12 @@
 package com.nametagedit.plugin;
 
 import com.nametagedit.plugin.api.data.FakeTeam;
-import com.nametagedit.plugin.packets.PacketWrapper;
+import com.nametagedit.plugin.packets.TeamPackets;
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -132,7 +131,7 @@ public class NametagManager {
 
     void sendTeams(Player player) {
         for (FakeTeam fakeTeam : TEAMS.values()) {
-            new PacketWrapper(fakeTeam.getName(), fakeTeam.getPrefix(), fakeTeam.getSuffix(), 0, fakeTeam.getMembers(), fakeTeam.isVisible()).send(player);
+            TeamPackets.create(fakeTeam, player);
         }
     }
 
@@ -149,7 +148,7 @@ public class NametagManager {
     // Below are private methods to construct a new Scoreboard packet
     // ==============================================================
     private void removeTeamPackets(FakeTeam fakeTeam) {
-        new PacketWrapper(fakeTeam.getName(), fakeTeam.getPrefix(), fakeTeam.getSuffix(), 1, new ArrayList<>(), fakeTeam.isVisible()).send();
+        TeamPackets.remove(fakeTeam.getName());
     }
 
     private boolean removePlayerFromTeamPackets(FakeTeam fakeTeam, String... players) {
@@ -157,17 +156,17 @@ public class NametagManager {
     }
 
     private boolean removePlayerFromTeamPackets(FakeTeam fakeTeam, List<String> players) {
-        new PacketWrapper(fakeTeam.getName(), 4, players).send();
+        TeamPackets.removeMembers(fakeTeam.getName(), players);
         fakeTeam.getMembers().removeAll(players);
         return fakeTeam.getMembers().isEmpty();
     }
 
     private void addTeamPackets(FakeTeam fakeTeam) {
-        new PacketWrapper(fakeTeam.getName(), fakeTeam.getPrefix(), fakeTeam.getSuffix(), 0, fakeTeam.getMembers(), fakeTeam.isVisible()).send();
+        TeamPackets.create(fakeTeam);
     }
 
     private void addPlayerToTeamPackets(FakeTeam fakeTeam, String player) {
-        new PacketWrapper(fakeTeam.getName(), 3, Collections.singletonList(player)).send();
+        TeamPackets.addMembers(fakeTeam.getName(), Collections.singletonList(player));
     }
 
 }

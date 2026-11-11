@@ -1,8 +1,9 @@
 name: NametagEdit
 main: com.nametagedit.plugin.NametagEdit
 version: ${project.version}
-api-version: 1.21
+api-version: '26.3'
 authors: [sgtcaze, Cory, Lorenzo0111, Aurelien30000]
+depend: [packetevents]
 softdepend: [LuckPerms, PlaceholderAPI]
 commands:
   ne:

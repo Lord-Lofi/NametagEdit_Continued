@@ -3,14 +3,10 @@ package com.nametagedit.plugin;
 import com.nametagedit.plugin.api.INametagApi;
 import com.nametagedit.plugin.api.NametagAPI;
 import com.nametagedit.plugin.hooks.*;
-import com.nametagedit.plugin.packets.PacketWrapper;
-import com.nametagedit.plugin.packets.VersionChecker;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.ArrayList;
 
 /**
  * TODO:
@@ -27,7 +23,6 @@ public class NametagEdit extends JavaPlugin {
 
     private NametagHandler handler;
     private NametagManager manager;
-    private VersionChecker.BukkitVersion version;
 
     public static INametagApi getApi() {
         return api;
@@ -35,14 +30,7 @@ public class NametagEdit extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        testCompat();
-        if (!isEnabled()) return;
-
         instance = this;
-
-        version = VersionChecker.getBukkitVersion();
-
-        getLogger().info("Successfully loaded using bukkit version: " + version.name());
 
         manager = new NametagManager(this);
         handler = new NametagHandler(this, manager);
@@ -80,19 +68,6 @@ public class NametagEdit extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin(plugin) == null) return false;
         getLogger().info("Found " + plugin + "! Hooking in.");
         return true;
-    }
-
-    private void testCompat() {
-        PacketWrapper wrapper = new PacketWrapper("TEST", "&f", "", 0, new ArrayList<>(), true);
-        wrapper.send();
-        if (wrapper.error == null) return;
-        Bukkit.getPluginManager().disablePlugin(this);
-        getLogger().severe("\n------------------------------------------------------\n" +
-                "[WARNING] NametagEdit v" + getDescription().getVersion() + " Failed to load! [WARNING]" +
-                "\n------------------------------------------------------" +
-                "\nThis might be an issue with reflection. REPORT this:\n> " +
-                wrapper.error +
-                "\nThe plugin will now self destruct.\n------------------------------------------------------");
     }
 
 }
