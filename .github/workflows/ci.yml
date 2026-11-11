@@ -1,0 +1,39 @@
+# Builds NametagEdit on every pull request and every push to main.
+# The job name "check" is the required status check in the "main – review" ruleset,
+# so keep the job name, or pass --check NAME to apply-baseline.sh.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Build
+        run: mvn -B -ntp package
+
+      - name: Upload the plugin JAR
+        uses: actions/upload-artifact@v7
+        with:
+          name: NametagEdit
+          path: target/NametagEdit.jar
+          if-no-files-found: error
