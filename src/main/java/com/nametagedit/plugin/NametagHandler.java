@@ -5,7 +5,6 @@ import com.nametagedit.plugin.api.data.INametag;
 import com.nametagedit.plugin.api.data.PlayerData;
 import com.nametagedit.plugin.api.events.NametagEvent;
 import com.nametagedit.plugin.api.events.NametagFirstLoadedEvent;
-import org.bstats.bukkit.Metrics;
 import com.nametagedit.plugin.storage.AbstractConfig;
 import com.nametagedit.plugin.storage.database.DatabaseConfig;
 import com.nametagedit.plugin.storage.flatfile.FlatFileConfig;
@@ -47,6 +46,8 @@ public class NametagHandler implements Listener {
     private boolean tabListEnabled;
     private boolean longNametagsEnabled;
     private boolean refreshTagOnWorldChange;
+    // Use the LuckPerms prefix/suffix as the nametag (LuckPerms.UsePrefixSuffix)
+    private boolean luckPermsTags;
 
     private BukkitTask clearEmptyTeamTask;
     private BukkitTask refreshNametagTask;
@@ -323,12 +324,9 @@ public class NametagHandler implements Listener {
         this.tabListEnabled = config.getBoolean("Tablist.Enabled");
         this.longNametagsEnabled = config.getBoolean("Tablist.LongTags");
         this.refreshTagOnWorldChange = config.getBoolean("RefreshTagOnWorldChange");
+        this.luckPermsTags = config.getBoolean("LuckPerms.UsePrefixSuffix", false)
+                && Bukkit.getPluginManager().isPluginEnabled("LuckPerms");
         DISABLE_PUSH_ALL_TAGS = config.getBoolean("DisablePush");
-
-        if (config.getBoolean("MetricsEnabled")) {
-            // bStats plugin ID 2539 — verify at https://bstats.org/plugin/bukkit/NametagEdit
-            new Metrics(NametagEdit.getPlugin(NametagEdit.class), 2539);
-        }
 
         clearEmptyTeamTask = createTask("ClearEmptyTeamsInterval", clearEmptyTeamTask, () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "nte teams clear"));
 
@@ -370,7 +368,12 @@ public class NametagHandler implements Listener {
             return;
         }
 
+        // Order: the player's own NametagEdit tag, then (if enabled) their
+        // LuckPerms prefix/suffix, then the first NametagEdit group they match.
         INametag tempNametag = getPlayerData(player);
+        if (tempNametag == null && luckPermsTags) {
+            tempNametag = com.nametagedit.plugin.hooks.HookLuckPerms.getTag(player);
+        }
         if (tempNametag == null) {
             for (GroupData group : getGroupData()) {
                 if (player.hasPermission(group.getBukkitPermission())) {

@@ -11,17 +11,7 @@ It is most likely that several plugins are manipulating the main scoreboard, and
 Please send us the name, or check if it is incompatible [here](IncompatiblePlugins.md)
 
 == Long Tags Don't Work!
-The nameplate (above your head) is limited to 48 characters total. 16 characters for the prefix, 16 for your name, and 16 for the suffix. It is NOT a bug that nametags longer than 16 characters are cut off. This is because of a limitation in the minecraft scoreboard code.  
+Long Tags only changes the tab list. Prefixes and suffixes above the head are limited to 256 characters each.
 
-== ViaVersion:
-If you're using ViaVersion on 1.8.x and having issues with tags showing up in the tab list. Edit the file plugins/ViaVersion/config.yml
-
-Change:
-{{{
-auto-team: true
-}}}
-
-To:
-{{{
-auto-team: false
-}}}
+== Nametags don't show at all
+NametagEdit needs PacketEvents (2.14.0 or newer) installed as a plugin. If it's missing, the server won't load NametagEdit; check the console at startup.

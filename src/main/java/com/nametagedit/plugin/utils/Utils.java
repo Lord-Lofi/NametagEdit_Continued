@@ -1,6 +1,5 @@
 package com.nametagedit.plugin.utils;
 
-import com.nametagedit.plugin.packets.VersionChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -35,14 +34,7 @@ public class Utils {
 
     public static String format(String input, boolean limitChars) {
         String colored = color(input);
-
-        switch (VersionChecker.getBukkitVersion()) {
-            case v1_8_R1: case v1_8_R2: case v1_8_R3: case v1_9_R1: case v1_9_R2:
-            case v1_10_R1: case v1_11_R1: case v1_12_R1:
-                return limitChars && colored.length() > 16 ? colored.substring(0, 16) : colored;
-            default:
-                return limitChars && colored.length() > 256 ? colored.substring(0, 256) : colored;
-        }
+        return limitChars && colored.length() > 256 ? colored.substring(0, 256) : colored;
     }
 
     public static String color(String text) {
@@ -50,23 +42,22 @@ public class Utils {
 
         text = ChatColor.translateAlternateColorCodes('&', text);
 
-        if (VersionChecker.canHex()) {
-            final char colorChar = ChatColor.COLOR_CHAR;
+        // &#RRGGBB hex colours -> §x§R§R§G§G§B§B
+        final char colorChar = ChatColor.COLOR_CHAR;
 
-            final Matcher matcher = hexPattern.matcher(text);
-            final StringBuffer buffer = new StringBuffer(text.length() + 4 * 8);
+        final Matcher matcher = hexPattern.matcher(text);
+        final StringBuffer buffer = new StringBuffer(text.length() + 4 * 8);
 
-            while (matcher.find()) {
-                final String group = matcher.group(1);
+        while (matcher.find()) {
+            final String group = matcher.group(1);
 
-                matcher.appendReplacement(buffer, colorChar + "x"
-                        + colorChar + group.charAt(0) + colorChar + group.charAt(1)
-                        + colorChar + group.charAt(2) + colorChar + group.charAt(3)
-                        + colorChar + group.charAt(4) + colorChar + group.charAt(5));
-            }
-
-            text = matcher.appendTail(buffer).toString();
+            matcher.appendReplacement(buffer, colorChar + "x"
+                    + colorChar + group.charAt(0) + colorChar + group.charAt(1)
+                    + colorChar + group.charAt(2) + colorChar + group.charAt(3)
+                    + colorChar + group.charAt(4) + colorChar + group.charAt(5));
         }
+
+        text = matcher.appendTail(buffer).toString();
 
         return text;
     }

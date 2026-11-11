@@ -1,32 +1,37 @@
-# NametagEdit (1.21.x Fork)
+# NametagEdit (Paper 26.3 Fork)
 
-[![Spigot](https://img.shields.io/badge/Spigot-1.21.x-yellow.svg)](https://www.spigotmc.org/resources/nametagedit.3836/)
-[![Minecraft](https://img.shields.io/badge/Minecraft-1.7--1.21.11-green.svg)](documentation/Support)
-[![JDK](https://img.shields.io/badge/JDK-17%2B-blue.svg)](https://adoptium.net/)
+[![Paper](https://img.shields.io/badge/Paper-26.3-blue.svg)](https://papermc.io/)
+[![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://adoptium.net/)
+[![PacketEvents](https://img.shields.io/badge/requires-PacketEvents%202.14%2B-green.svg)](https://www.spigotmc.org/resources/packetevents-api.80279/)
 [![NametagEditAPI](https://img.shields.io/badge/NTE-Developer%20API-ff69b4.svg)](documentation/Developers.creole)
 
-> **Fork of [sgtcaze/NametagEdit](https://github.com/sgtcaze/NametagEdit)** updated to support Minecraft 1.21.x (including 1.21.11) on Spigot.
+> **Fork of [sgtcaze/NametagEdit](https://github.com/sgtcaze/NametagEdit)** updated for Paper 26.3.
 
-This plugin allows users to add prefixes and suffixes to player nametags. Individual tags can be created for players, or a group tag can be assigned via permissions.
-
-* Minecraft `1.7.x – 1.12.x` — max **16-character** prefix/suffix
-* Minecraft `1.13.x – 1.21.x` — max **256-character** prefix/suffix
-* Minecraft `1.16.x – 1.21.x` — **hex color** (`&#RRGGBB`) support
-
-Supports EssentialsGroupManager, PermissionsEx, zPermissions, **LuckPerms**, and LibsDisguises. Tags update automatically when a player's group or permissions change.
+This plugin adds prefixes and suffixes to player nametags and the tab list. Tags can be set per player, or assigned to groups by permission.
 
 ---
 
-## Changes in this fork (v4.6.0)
+## Requirements
+
+* **Paper 26.3** (or a fork of it)
+* **Java 25**
+* **[PacketEvents](https://www.spigotmc.org/resources/packetevents-api.80279/) 2.14.0 or newer**, installed as a separate plugin
+* Optional: [LuckPerms](https://luckperms.net/), [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)
+
+---
+
+## Changes in this fork (v5.0.0)
 
 | Area | Change |
 |---|---|
-| **Minecraft support** | Extended to 1.20.5/1.20.6 and all 1.21.x versions up to **1.21.11** |
-| **VersionChecker** | No longer crashes with NPE on unknown future versions — falls back gracefully |
-| **NMS reflection** | `playerConnection` field resolved by type-scan if Spigot renames it in a future build |
-| **bStats** | Upgraded from embedded v1 class to **bStats v3** (`org.bstats:bstats-bukkit:3.0.2`) |
-| **Dependencies** | Removed `commons-lang` and `json-simple` — replaced with Java built-ins and Gson |
-| **Build** | Java 17+, Spigot API `1.21.11-R0.2-SNAPSHOT`, shade plugin 3.5.1 |
+| **Minecraft support** | Targets **Paper 26.3** and Java 25. Support for older Minecraft versions has been removed. |
+| **Nametag packets** | Sent through **PacketEvents** instead of reflection into server internals, so Minecraft updates are far less likely to break the plugin (usually updating PacketEvents is enough). Tags stay client-side: nothing is added to the server scoreboard. |
+| **Hex colours** | `&#RRGGBB` works in prefixes and suffixes. |
+| **PlaceholderAPI** | Placeholders still work inside tags, and NametagEdit now provides its own: `%nametagedit_prefix%`, `%nametagedit_suffix%`, `%nametagedit_group%`. |
+| **LuckPerms** | Tags refresh when LuckPerms data changes. New option `LuckPerms.UsePrefixSuffix` uses LuckPerms prefixes/suffixes as nametags (off by default). |
+| **UUID lookups** | Use the server's player cache and profile service instead of calling Mojang directly (and work on offline-mode servers). |
+| **Removed** | PermissionsEx, zPermissions, GroupManager, Guilds and LibsDisguises support; the NametagEdit 3.x data converter; bStats metrics. |
+| **Build** | Paper API 26.3, HikariCP 7 (relocated), Lombok 1.18.42, current Maven plugins. |
 
 ---
 
@@ -42,42 +47,50 @@ Supports EssentialsGroupManager, PermissionsEx, zPermissions, **LuckPerms**, and
 ## Features
 ✔ Flatfile and MySQL storage with connection pooling (HikariCP)
 
-✔ PermissionsEX, zPermissions, GroupManager, **LuckPerms** support
+✔ **LuckPerms** support, including optional LuckPerms prefixes/suffixes
+
+✔ [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) placeholders in tags, plus NametagEdit's own placeholders
 
 ✔ Sortable group/player tags in the tab list
 
-✔ [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) support
+✔ Hex colour support (`&#RRGGBB`)
 
-✔ [Guilds](https://www.spigotmc.org/resources/guilds.66176/) support
+---
 
-✔ Hex color support on 1.16+
+## Placeholders
+
+With PlaceholderAPI installed, other plugins can use:
+
+| Placeholder | Value |
+|---|---|
+| `%nametagedit_prefix%` | The prefix currently shown above the player's head |
+| `%nametagedit_suffix%` | The suffix currently shown above the player's head |
+| `%nametagedit_group%` | The NametagEdit group the player matches (empty if none) |
 
 ---
 
 ## Building
 
-Requires Java 17+ and Maven.
+Requires Java 25 and Maven.
 
 ```bash
 mvn clean package
 ```
 
-The plugin jar is output to `target/NametagEdit.jar`. Drop it into your server's `plugins/` folder.
-
-> **Note:** All NMS access is via reflection — no BuildTools run is required to compile.
+The plugin jar is output to `target/NametagEdit.jar`. Put it in your server's `plugins/` folder together with PacketEvents.
 
 ---
 
 ## Frequently Asked Questions
 
 #### Q: Will this allow me to change my skin or display name?
-**A:** No. The plugin creates fake scoreboard teams with packets to show prefix/suffix around the vanilla name.
+**A:** No. The plugin sends client-side scoreboard teams (via PacketEvents) to show a prefix/suffix around the vanilla name.
 
 #### Q: My client crashes with "Cannot remove from ID#". Why?
 **A:** A player can only belong to one scoreboard team at a time. Any two plugins that manipulate team packets will conflict. There is no workaround.
 
 #### Q: My nametag is cut short even with LongTags enabled!
-**A:** LongTags only extends the tab-list display. The name above a player's head has a 16-character limit imposed by Mojang for prefix and suffix respectively.
+**A:** LongTags only changes the tab-list display. Prefixes and suffixes are limited to 256 characters each.
 
 #### Q: Can I sort nametags in the tab list?
 **A:** Yes — see the [Configuration](documentation/Configuration.creole) docs.

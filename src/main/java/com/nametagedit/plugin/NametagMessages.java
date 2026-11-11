@@ -16,7 +16,7 @@ public enum NametagMessages {
     GROUP_VALUE_CLEARED("Cleared the %s for the group %s"),
     GROUP_EXISTS_NOT("The group %s does not exist!"),
     GROUP_VALUE("Changed %s's %s to %s"),
-    USAGE_CONVERT("Usage: /nte convert <file/db> <file/db> <legacy (true/false)>"),
+    USAGE_CONVERT("Usage: /nte convert <file/db> <file/db>"),
     GROUP_REMOVED("Successfully removed group %s"),
     MODIFY_OWN_TAG("You can only modify your own tag."),
     NO_PERMISSION("You do not have permission to use this."),
@@ -26,7 +26,7 @@ public enum NametagMessages {
     CREATED_GROUP("Created group %s"),
     NOT_A_NUMBER("Uh-oh! %s does not appear to be a number!"),
     FILE_MISCONFIGURED("The file %s is not properly configured. Please read the configuration guide, otherwise conversion will fail."),
-    CONVERSION("Attempting to convert %s from %s to %s. (Legacy: %s)");
+    CONVERSION("Attempting to convert %s from %s to %s.");
 
     private final String text;
 
