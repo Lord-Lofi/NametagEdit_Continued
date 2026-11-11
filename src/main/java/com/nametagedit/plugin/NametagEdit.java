@@ -41,6 +41,10 @@ public class NametagEdit extends JavaPlugin {
             pluginManager.registerEvents(new HookLuckPerms(handler), this);
         }
 
+        if (checkShouldRegister("PlaceholderAPI")) {
+            new NametagExpansion(this).register();
+        }
+
         getCommand("ne").setExecutor(new NametagCommand(handler));
 
         if (api == null) {

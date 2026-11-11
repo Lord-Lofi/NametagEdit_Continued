@@ -42,6 +42,14 @@ RefreshTagOnWorldChange: false
 # this feature. This feature is in seconds. NOTE: We do not recommend this.
 RefreshInterval: 0
 #
+# LuckPerms integration. Nametags always refresh when a player's LuckPerms
+# groups or permissions change.
+LuckPerms:
+  # If true, use the prefix and suffix set in LuckPerms as the nametag.
+  # A player's own NametagEdit tag (/nte player) still takes priority.
+  # If LuckPerms has no prefix or suffix for a player, NametagEdit groups are used.
+  UsePrefixSuffix: false
+#
 # If enabled, NametagEdit will use database support
 MySQL:
   Enabled: false
